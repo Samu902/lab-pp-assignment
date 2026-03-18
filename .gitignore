@@ -31,9 +31,7 @@
 *.out
 *.app
 
-
-
-#cmake 
+# Cmake
 CMakeLists.txt
 ./idea
 ./cmake-build-debug/*
