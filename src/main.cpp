@@ -1,5 +1,7 @@
 ﻿#include <iostream>
 #include <string>
+#include <chrono>
+#include <vector>
 #include "../include/image_loader.h"   // gestione immagini
 #include "../include/morphology.h"     // funzioni morfologiche
 
@@ -79,9 +81,14 @@ int main() {
     Image out_img;
     StructuringElement se = create_square_se(se_size);
 
-    // Esecuzione
-    const int repetitions = 5;
+    // Vettore per statistiche dei tempi
+    std::vector<double> timings;
+
+    // Esecuzione e misurazione
+    const int repetitions = 5; // ripetizioni per statistiche
     for(int i=0; i<repetitions; i++) {
+        auto start = std::chrono::high_resolution_clock::now();
+
         switch(approach) {
             case SEQUENTIAL:
                 out_img = morphological_operation_seq(in_img, se, operation);
@@ -93,7 +100,22 @@ int main() {
                 out_img = morphological_operation_cuda(in_img, se, operation, mem_type);
                 break;
         }
+
+        auto end = std::chrono::high_resolution_clock::now();
+        double duration = std::chrono::duration<double, std::milli>(end - start).count();
+        timings.push_back(duration);
+        std::cout << "Run " << i+1 << ": " << duration << " ms\n";
     }
+
+    // Statistiche
+    double sum = 0, min_time = timings[0], max_time = timings[0];
+    for(double t : timings) {
+        sum += t;
+        if(t < min_time) min_time = t;
+        if(t > max_time) max_time = t;
+    }
+    double avg_time = sum / repetitions;
+    std::cout << "Timing stats (ms): min=" << min_time << " max=" << max_time << " avg=" << avg_time << "\n";
 
     // Salva immagine risultato
     save_image(out_img, output_path);
