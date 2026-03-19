@@ -31,10 +31,9 @@
 *.out
 *.app
 
-# Cmake
-CMakeLists.txt
+# Other
 ./idea
-./cmake-build-debug/*
+./cmake-build-debug
 ./git
 
 
