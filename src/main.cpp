@@ -7,6 +7,19 @@
 
 enum Approach { SEQUENTIAL, OPENMP, CUDA };
 
+std::string operation_name(Operation operation){
+    switch(operation) {
+    case EROSION: return "erosion";
+    case DILATION: return "dilation";
+    case OPENING: return "opening";
+    case CLOSING: return "closing";
+    case GRADIENT: return "gradient";
+    default:
+        std::cerr << "Invalid choice, defaulting to Erosion.\n";
+        return "erosion";
+    }
+}
+
 // funzione helper per chiedere approccio
 Approach choose_approach() {
     int choice;
@@ -61,23 +74,22 @@ Operation choose_operation() {
 }
 
 int main() {
-    std::string input_path, output_path;
+    std::string in_image_filename;
     int se_size;
 
     // Input interattivo
-    std::cout << "Enter input image path: ";
-    std::cin >> input_path;
-    std::cout << "Enter output image path: ";
-    std::cin >> output_path;
-    std::cout << "Enter structuring element size (odd integer, e.g., 3,5,7): ";
+    std::cout << "Enter input image file name (.pgm file in images/in folder): ";
+    std::cin >> in_image_filename;
+    std::cout << "Enter structuring element size (odd integer, e.g., 3/5/7): ";
     std::cin >> se_size;
 
     Approach approach = choose_approach();
     Operation operation = choose_operation();
-    CudaMemoryType mem_type = choose_memory_type();
+    CudaMemoryType mem_type;
+    if (approach == CUDA) mem_type= choose_memory_type();
 
     // Caricamento immagine
-    Image in_img = load_image(input_path);
+    Image in_img = load_image("../images/in/" + in_image_filename + ".pgm");
     Image out_img;
     StructuringElement se = create_square_se(se_size);
 
@@ -118,8 +130,8 @@ int main() {
     std::cout << "Timing stats (ms): min=" << min_time << " max=" << max_time << " avg=" << avg_time << "\n";
 
     // Salva immagine risultato
-    save_image(out_img, output_path);
-    std::cout << "Done. Output saved to " << output_path << "\n";
+    save_image(out_img, "../images/out/" + in_image_filename + "_" + operation_name(operation) + ".pgm");
+    std::cout << "Done. Output saved to images/out folder.\n";
 
     return 0;
 }
