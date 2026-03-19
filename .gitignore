@@ -32,9 +32,9 @@
 *.app
 
 # Other
-./idea
-./cmake-build-debug
-./git
+.idea/
+cmake-build-debug/
+.git/
 
 
 
