@@ -75,9 +75,9 @@ static void morphological_cuda_global(const Image& img, const StructuringElement
     dim3 block(BLOCK_SIZE, BLOCK_SIZE);
     dim3 grid((width+BLOCK_SIZE-1)/BLOCK_SIZE, (height+BLOCK_SIZE-1)/BLOCK_SIZE);
 
-    if(operation == "erosion")
+    if(operation == EROSION)
         erosion_global_kernel<<<grid, block>>>(d_input, d_output, width, height, d_se, se_size);
-    else if(operation == "dilation")
+    else if(operation == DILATION)
         dilation_global_kernel<<<grid, block>>>(d_input, d_output, width, height, d_se, se_size);
     else
         throw std::invalid_argument("CUDA global memory: only erosion/dilation implemented");
@@ -97,7 +97,7 @@ static void morphological_cuda_global(const Image& img, const StructuringElement
 // ------------------------
 // Entry point unificato
 // ------------------------
-Image morphological_operation_cuda_impl(const Image& img, const StructuringElement& se, const std::string& operation, CudaMemoryType mem_type)
+Image morphological_operation_cuda_impl(const Image& img, const StructuringElement& se, Operation operation, CudaMemoryType mem_type)
 {
     Image output;
 

@@ -72,11 +72,11 @@ Image gradient_seq(const Image& img, const StructuringElement& se) {
 }
 
 // --- Interfaccia principale ---
-Image morphological_operation_seq(const Image& img, const StructuringElement& se, const std::string& operation) {
-    if(operation == "erosion") return erosion_seq(img,se);
-    if(operation == "dilation") return dilation_seq(img,se);
-    if(operation == "opening") return opening_seq(img,se);
-    if(operation == "closing") return closing_seq(img,se);
-    if(operation == "gradient") return gradient_seq(img,se);
-    throw std::invalid_argument("Unknown operation: " + operation);
+Image morphological_operation_seq(const Image& img, const StructuringElement& se, Operation operation) {
+    if(operation == EROSION) return erosion_seq(img,se);
+    if(operation == DILATION) return dilation_seq(img,se);
+    if(operation == OPENING) return opening_seq(img,se);
+    if(operation == CLOSING) return closing_seq(img,se);
+    if(operation == GRADIENT) return gradient_seq(img,se);
+    throw std::invalid_argument("Unknown operation");
 }

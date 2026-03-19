@@ -4,10 +4,10 @@
 
 #ifdef USE_CUDA
 // dichiarazione della vera implementazione CUDA
-Image morphological_operation_cuda_impl(const Image&, const StructuringElement&, const std::string&, CudaMemoryType);
+Image morphological_operation_cuda_impl(const Image&, const StructuringElement&, Operation, CudaMemoryType);
 #endif
 
-Image morphological_operation_cuda(const Image& img, const StructuringElement& se, const std::string& operation, CudaMemoryType mem_type) {
+Image morphological_operation_cuda(const Image& img, const StructuringElement& se, Operation operation, CudaMemoryType mem_type) {
     #ifdef USE_CUDA
     return morphological_operation_cuda_impl(img, se, operation, mem_type);
     #else

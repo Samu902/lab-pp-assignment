@@ -43,20 +43,20 @@ CudaMemoryType choose_memory_type() {
 }
 
 // funzione helper per operazione morfologica
-std::string choose_operation() {
+Operation choose_operation() {
     int choice;
     std::cout << "Select morphological operation:\n";
     std::cout << "1 - Erosion\n2 - Dilation\n3 - Opening\n4 - Closing\n5 - Gradient\n";
     std::cin >> choice;
     switch(choice) {
-        case 1: return "erosion";
-        case 2: return "dilation";
-        case 3: return "opening";
-        case 4: return "closing";
-        case 5: return "gradient";
+        case 1: return EROSION;
+        case 2: return DILATION;
+        case 3: return OPENING;
+        case 4: return CLOSING;
+        case 5: return GRADIENT;
         default:
             std::cerr << "Invalid choice, defaulting to Erosion.\n";
-            return "erosion";
+            return EROSION;
     }
 }
 
@@ -73,7 +73,7 @@ int main() {
     std::cin >> se_size;
 
     Approach approach = choose_approach();
-    std::string operation = choose_operation();
+    Operation operation = choose_operation();
     CudaMemoryType mem_type = choose_memory_type();
 
     // Caricamento immagine

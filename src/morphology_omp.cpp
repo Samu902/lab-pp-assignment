@@ -76,11 +76,11 @@ Image gradient_omp(const Image& img, const StructuringElement& se) {
 }
 
 // --- Interfaccia principale ---
-Image morphological_operation_omp(const Image& img, const StructuringElement& se, const std::string& operation) {
-    if(operation == "erosion") return erosion_omp(img,se);
-    if(operation == "dilation") return dilation_omp(img,se);
-    if(operation == "opening") return opening_omp(img,se);
-    if(operation == "closing") return closing_omp(img,se);
-    if(operation == "gradient") return gradient_omp(img,se);
-    throw std::invalid_argument("Unknown operation: " + operation);
+Image morphological_operation_omp(const Image& img, const StructuringElement& se, Operation operation) {
+    if(operation == EROSION) return erosion_omp(img,se);
+    if(operation == DILATION) return dilation_omp(img,se);
+    if(operation == OPENING) return opening_omp(img,se);
+    if(operation == CLOSING) return closing_omp(img,se);
+    if(operation == GRADIENT) return gradient_omp(img,se);
+    throw std::invalid_argument("Unknown operation");
 }
