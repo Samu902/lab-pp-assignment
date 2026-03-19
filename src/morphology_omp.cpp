@@ -1,0 +1,86 @@
+#include "../include/morphology.h"
+#include <algorithm>
+#include <stdexcept>
+#include <omp.h>
+#include <string>
+
+// --- Primitive base con OpenMP ---
+Image erosion_omp(const Image& img, const StructuringElement& se) {
+    Image out = img;
+    int offset = se.size / 2;
+
+    #pragma omp parallel for
+    for(int y = 0; y < img.height; y++) {
+        for(int x = 0; x < img.width; x++) {
+            uint8_t min_val = 255;
+            for(int j = 0; j < se.size; j++) {
+                for(int i = 0; i < se.size; i++) {
+                    if(se.at(i,j) == 0) continue;
+                    int xi = x + i - offset;
+                    int yj = y + j - offset;
+                    if(xi >=0 && xi < img.width && yj >=0 && yj < img.height) {
+                        min_val = std::min(min_val, img.at(xi,yj));
+                    }
+                }
+            }
+            out.at(x,y) = min_val;
+        }
+    }
+    return out;
+}
+
+Image dilation_omp(const Image& img, const StructuringElement& se) {
+    Image out = img;
+    int offset = se.size / 2;
+
+    #pragma omp parallel for
+    for(int y = 0; y < img.height; y++) {
+        for(int x = 0; x < img.width; x++) {
+            uint8_t max_val = 0;
+            for(int j = 0; j < se.size; j++) {
+                for(int i = 0; i < se.size; i++) {
+                    if(se.at(i,j) == 0) continue;
+                    int xi = x + i - offset;
+                    int yj = y + j - offset;
+                    if(xi >=0 && xi < img.width && yj >=0 && yj < img.height) {
+                        max_val = std::max(max_val, img.at(xi,yj));
+                    }
+                }
+            }
+            out.at(x,y) = max_val;
+        }
+    }
+    return out;
+}
+
+// --- Operazioni derivate ---
+Image opening_omp(const Image& img, const StructuringElement& se) {
+    return dilation_omp(erosion_omp(img,se), se);
+}
+
+Image closing_omp(const Image& img, const StructuringElement& se) {
+    return erosion_omp(dilation_omp(img,se), se);
+}
+
+Image gradient_omp(const Image& img, const StructuringElement& se) {
+    Image dil = dilation_omp(img,se);
+    Image ero = erosion_omp(img,se);
+    Image out = img;
+    #pragma omp parallel for
+    for(int y=0; y<img.height; y++) {
+        for(int x=0; x<img.width; x++) {
+            out.at(x,y) = dil.at(x,y) - ero.at(x,y);
+        }
+    }
+    return out;
+}
+
+// --- Interfaccia principale ---
+Image morphological_operation_omp(const Image& img, const StructuringElement& se, const std::string& operation) {
+    if(operation == "erosion") return erosion_omp(img,se);
+    if(operation == "dilation") return dilation_omp(img,se);
+    if(operation == "opening") return opening_omp(img,se);
+    if(operation == "closing") return closing_omp(img,se);
+    if(operation == "gradient") return gradient_omp(img,se);
+    throw std::invalid_argument("Unknown operation: " + operation);
+}
