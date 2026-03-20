@@ -2,14 +2,13 @@
 #include <algorithm>
 #include <stdexcept>
 #include <omp.h>
-#include <string>
 
 // --- Primitive base con OpenMP ---
 Image erosion_omp(const Image& img, const StructuringElement& se) {
     Image out = img;
     int offset = se.getSize() / 2;
 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static)
     for(int y = 0; y < img.getHeight(); y++) {
         for(int x = 0; x < img.getWidth(); x++) {
             uint8_t min_val = 255;
@@ -33,7 +32,7 @@ Image dilation_omp(const Image& img, const StructuringElement& se) {
     Image out = img;
     int offset = se.getSize() / 2;
 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static)
     for(int y = 0; y < img.getHeight(); y++) {
         for(int x = 0; x < img.getWidth(); x++) {
             uint8_t max_val = 0;
@@ -66,7 +65,7 @@ Image gradient_omp(const Image& img, const StructuringElement& se) {
     Image dil = dilation_omp(img,se);
     Image ero = erosion_omp(img,se);
     Image out = img;
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static)
     for(int y=0; y<img.getHeight(); y++) {
         for(int x=0; x<img.getWidth(); x++) {
             out(x,y) = dil(x,y) - ero(x,y);

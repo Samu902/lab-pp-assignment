@@ -1,7 +1,6 @@
 #include "../include/morphology.h"
 #include <algorithm>
 #include <stdexcept>
-#include <string>
 
 // --- Primitive base ---
 Image erosion_seq(const Image& img, const StructuringElement& se) {
