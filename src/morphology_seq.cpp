@@ -6,22 +6,22 @@
 // --- Primitive base ---
 Image erosion_seq(const Image& img, const StructuringElement& se) {
     Image out = img;
-    int offset = se.size / 2;
+    int offset = se.getSize() / 2;
 
-    for(int y = 0; y < img.height; y++) {
-        for(int x = 0; x < img.width; x++) {
+    for(int y = 0; y < img.getHeight(); y++) {
+        for(int x = 0; x < img.getWidth(); x++) {
             uint8_t min_val = 255;
-            for(int j = 0; j < se.size; j++) {
-                for(int i = 0; i < se.size; i++) {
-                    if(se.at(i,j) == 0) continue;
+            for(int j = 0; j < se.getSize(); j++) {
+                for(int i = 0; i < se.getSize(); i++) {
+                    if(se(i,j) == 0) continue;
                     int xi = x + i - offset;
                     int yj = y + j - offset;
-                    if(xi >=0 && xi < img.width && yj >=0 && yj < img.height) {
-                        min_val = std::min(min_val, img.at(xi,yj));
+                    if(xi >=0 && xi < img.getWidth() && yj >=0 && yj < img.getHeight()) {
+                        min_val = std::min(min_val, img(xi,yj));
                     }
                 }
             }
-            out.at(x,y) = min_val;
+            out(x,y) = min_val;
         }
     }
     return out;
@@ -29,22 +29,22 @@ Image erosion_seq(const Image& img, const StructuringElement& se) {
 
 Image dilation_seq(const Image& img, const StructuringElement& se) {
     Image out = img;
-    int offset = se.size / 2;
+    int offset = se.getSize() / 2;
 
-    for(int y = 0; y < img.height; y++) {
-        for(int x = 0; x < img.width; x++) {
+    for(int y = 0; y < img.getHeight(); y++) {
+        for(int x = 0; x < img.getWidth(); x++) {
             uint8_t max_val = 0;
-            for(int j = 0; j < se.size; j++) {
-                for(int i = 0; i < se.size; i++) {
-                    if(se.at(i,j) == 0) continue;
+            for(int j = 0; j < se.getSize(); j++) {
+                for(int i = 0; i < se.getSize(); i++) {
+                    if(se(i,j) == 0) continue;
                     int xi = x + i - offset;
                     int yj = y + j - offset;
-                    if(xi >=0 && xi < img.width && yj >=0 && yj < img.height) {
-                        max_val = std::max(max_val, img.at(xi,yj));
+                    if(xi >=0 && xi < img.getWidth() && yj >=0 && yj < img.getHeight()) {
+                        max_val = std::max(max_val, img(xi,yj));
                     }
                 }
             }
-            out.at(x,y) = max_val;
+            out(x,y) = max_val;
         }
     }
     return out;
@@ -63,9 +63,9 @@ Image gradient_seq(const Image& img, const StructuringElement& se) {
     Image dil = dilation_seq(img,se);
     Image ero = erosion_seq(img,se);
     Image out = img;
-    for(int y=0; y<img.height; y++) {
-        for(int x=0; x<img.width; x++) {
-            out.at(x,y) = dil.at(x,y) - ero.at(x,y);
+    for(int y=0; y<img.getHeight(); y++) {
+        for(int x=0; x<img.getWidth(); x++) {
+            out(x,y) = dil(x,y) - ero(x,y);
         }
     }
     return out;

@@ -57,9 +57,9 @@ __global__ void dilation_global_kernel(const uint8_t* input, uint8_t* output, in
 // ------------------------
 static void morphological_cuda_global(const Image& img, const StructuringElement& se, Image& output, const std::string& operation)
 {
-    int width = img.width;
-    int height = img.height;
-    int se_size = se.size;
+    int width = img.getWidth();
+    int height = img.getHeight;
+    int se_size = se.getSize();
 
     size_t img_bytes = width * height * sizeof(uint8_t);
     size_t se_bytes = se_size * se_size * sizeof(uint8_t);

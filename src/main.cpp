@@ -90,7 +90,7 @@ int main() {
 
     // Caricamento immagine
     Image in_img = load_image("../images/in/" + in_image_filename + ".pgm");
-    Image out_img;
+    Image out_img(in_img.getWidth(), in_img.getHeight());
     StructuringElement se = create_square_se(se_size);
 
     // Vettore per statistiche dei tempi

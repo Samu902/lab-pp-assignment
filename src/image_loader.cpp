@@ -17,42 +17,39 @@ Image load_image(const std::string& filename) {
     file >> width >> height >> maxval;
     file.get(); // consume newline
 
-    Image img;
-    img.width = width;
-    img.height = height;
-    img.data.resize(width * height);
+    Image img(width, height);
 
-    file.read(reinterpret_cast<char*>(img.data.data()), width * height);
+    file.read(reinterpret_cast<char*>(img.getDataPointer()), width * height);
     if(!file) throw std::runtime_error("Error reading image data");
 
     return img;
 }
 
-void save_image(const Image& img, const std::string& filename) {
+void save_image(Image& img, const std::string& filename) {
     std::ofstream file(filename, std::ios::binary);
     if(!file) throw std::runtime_error("Cannot open file for writing: " + filename);
 
-    file << "P5\n" << img.width << " " << img.height << "\n255\n";
-    file.write(reinterpret_cast<const char*>(img.data.data()), img.width * img.height);
+    file << "P5\n" << img.getWidth() << " " << img.getHeight() << "\n255\n";
+    file.write(reinterpret_cast<const char*>(img.getDataPointer()), img.getWidth() * img.getHeight());
 }
 
 // --- Creazione Structuring Element ---
 
 StructuringElement create_square_se(int size) {
-    StructuringElement se;
-    se.size = size;
-    se.data.resize(size * size, 1); // tutto attivo
+    StructuringElement se(size);
+    for (int x = 0; x < size; x++)
+        for (int y = 0; y < size; y++)
+            se(x, y) = 1;  // tutto attivo
     return se;
 }
 
 StructuringElement create_cross_se(int size) {
-    StructuringElement se;
-    se.size = size;
-    se.data.resize(size * size, 0);
+    StructuringElement se(size);
     int mid = size / 2;
-    for(int i = 0; i < size; i++) {
-        se.at(mid, i) = 1; // colonna centrale
-        se.at(i, mid) = 1; // riga centrale
+    for(int y = 0; y < size; y++) {
+        for(int x = 0; x < size; x++) {
+            se(x, y) = (x == mid || y == mid) ? 1 : 0;
+        }
     }
     return se;
 }
