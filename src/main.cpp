@@ -85,8 +85,7 @@ int main() {
 
     Approach approach = choose_approach();
     Operation operation = choose_operation();
-    CudaMemoryType mem_type;
-    if (approach == CUDA) mem_type= choose_memory_type();
+    CudaMemoryType mem_type = (approach == CUDA) ? choose_memory_type() : GLOBAL;
 
     // Caricamento immagine
     Image in_img = load_image("../images/in/" + in_image_filename + ".pgm");
