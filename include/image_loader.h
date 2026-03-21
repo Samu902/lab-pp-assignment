@@ -52,6 +52,7 @@ public:
     }
 
     int getSize() const { return size; }
+    auto getDataPointer() { return data.data(); }
 
 private:
     bool in_bounds(int x, int y) const {

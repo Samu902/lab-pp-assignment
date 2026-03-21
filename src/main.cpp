@@ -84,8 +84,8 @@ int main() {
     std::cin >> se_size;
 
     Approach approach = choose_approach();
-    Operation operation = choose_operation();
     CudaMemoryType mem_type = (approach == CUDA) ? choose_memory_type() : GLOBAL;
+    Operation operation = choose_operation();
 
     // Caricamento immagine
     Image in_img = load_image("../images/in/" + in_image_filename + ".pgm");
