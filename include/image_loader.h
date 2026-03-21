@@ -65,7 +65,7 @@ private:
 
 // Funzioni principali
 Image load_image(const std::string& filename);        // carica immagine grayscale
-void save_image(Image& img, const std::string& filename); // salva immagine grayscale
+void save_image(const Image& img, const std::string& filename); // salva immagine grayscale
 
 StructuringElement create_square_se(int size); // crea SE quadrato pieno
 StructuringElement create_cross_se(int size);  // crea SE a croce

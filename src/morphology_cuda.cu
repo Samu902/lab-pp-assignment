@@ -84,9 +84,6 @@ static void morphological_cuda_global(const Image& img, const StructuringElement
 
     cudaDeviceSynchronize();
 
-    //output.width = width;
-    //output.height = height;
-    //output.data.resize(width * height);
     cudaMemcpy(output.getDataW(), d_output, img_bytes, cudaMemcpyDeviceToHost);
 
     cudaFree(d_input);
