@@ -55,10 +55,10 @@ __global__ void dilation_global_kernel(const uint8_t* input, uint8_t* output, in
 // ------------------------
 // Funzione host per kernel
 // ------------------------
-static void morphological_cuda_global(const Image& img, const StructuringElement& se, Image& output, const std::string& operation)
+static void morphological_cuda_global(const Image& img, const StructuringElement& se, Image& output, Operation operation)
 {
     int width = img.getWidth();
-    int height = img.getHeight;
+    int height = img.getHeight();
     int se_size = se.getSize();
 
     size_t img_bytes = width * height * sizeof(uint8_t);
@@ -69,8 +69,8 @@ static void morphological_cuda_global(const Image& img, const StructuringElement
     cudaMalloc(&d_output, img_bytes);
     cudaMalloc(&d_se, se_bytes);
 
-    cudaMemcpy(d_input, img.data.data(), img_bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_se, se.data.data(), se_bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_input, img.getDataR(), img_bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_se, se.getDataR(), se_bytes, cudaMemcpyHostToDevice);
 
     dim3 block(BLOCK_SIZE, BLOCK_SIZE);
     dim3 grid((width+BLOCK_SIZE-1)/BLOCK_SIZE, (height+BLOCK_SIZE-1)/BLOCK_SIZE);
@@ -84,10 +84,10 @@ static void morphological_cuda_global(const Image& img, const StructuringElement
 
     cudaDeviceSynchronize();
 
-    output.width = width;
-    output.height = height;
-    output.data.resize(width * height);
-    cudaMemcpy(output.data.data(), d_output, img_bytes, cudaMemcpyDeviceToHost);
+    //output.width = width;
+    //output.height = height;
+    //output.data.resize(width * height);
+    cudaMemcpy(output.getDataW(), d_output, img_bytes, cudaMemcpyDeviceToHost);
 
     cudaFree(d_input);
     cudaFree(d_output);
@@ -99,7 +99,7 @@ static void morphological_cuda_global(const Image& img, const StructuringElement
 // ------------------------
 Image morphological_operation_cuda_impl(const Image& img, const StructuringElement& se, Operation operation, CudaMemoryType mem_type)
 {
-    Image output;
+    Image output(img.getWidth(), img.getHeight());
 
     switch(mem_type){
         case GLOBAL:

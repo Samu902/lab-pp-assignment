@@ -23,8 +23,8 @@ public:
 
     int getWidth() const { return width; }
     int getHeight() const { return height; }
-    auto getDataPointer() { return data.data(); }
-
+    auto getDataR() const { return data.data(); }
+    auto getDataW() { return data.data(); }
 private:
     bool in_bounds(int x, int y) const {
         return x >= 0 && x < width && y >= 0 && y < height;
@@ -52,8 +52,8 @@ public:
     }
 
     int getSize() const { return size; }
-    auto getDataPointer() { return data.data(); }
-
+    auto getDataR() const { return data.data(); }
+    auto getDataW()  { return data.data(); }
 private:
     bool in_bounds(int x, int y) const {
         return x >= 0 && x < size && y >= 0 && y < size;

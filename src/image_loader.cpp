@@ -19,18 +19,18 @@ Image load_image(const std::string& filename) {
 
     Image img(width, height);
 
-    file.read(reinterpret_cast<char*>(img.getDataPointer()), width * height);
+    file.read(reinterpret_cast<char*>(img.getDataW()), width * height);
     if(!file) throw std::runtime_error("Error reading image data");
 
     return img;
 }
 
-void save_image(Image& img, const std::string& filename) {
+void save_image(const Image& img, const std::string& filename) {
     std::ofstream file(filename, std::ios::binary);
     if(!file) throw std::runtime_error("Cannot open file for writing: " + filename);
 
     file << "P5\n" << img.getWidth() << " " << img.getHeight() << "\n255\n";
-    file.write(reinterpret_cast<const char*>(img.getDataPointer()), img.getWidth() * img.getHeight());
+    file.write(reinterpret_cast<const char*>(img.getDataR()), img.getWidth() * img.getHeight());
 }
 
 // --- Creazione Structuring Element ---
