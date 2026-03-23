@@ -44,7 +44,11 @@ endif()
 # CUDA sources and settings
 if(CUDAToolkit_FOUND)
     message(STATUS "CUDA found: ${CUDAToolkit_VERSION}")
-    target_sources(MyProject PRIVATE src/morphology_cuda.cu)
+    target_sources(MyProject PRIVATE
+        src/morphology_cuda_global.cu
+        src/morphology_cuda_constant.cu
+        src/morphology_cuda_shared.cu
+    )
     target_compile_definitions(MyProject PRIVATE USE_CUDA)
     # Modern CUDA properties
     set_target_properties(MyProject PROPERTIES
