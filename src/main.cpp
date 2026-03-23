@@ -96,10 +96,10 @@ int main() {
     std::vector<double> timings;
 
     // Esecuzione e misurazione
-    const int repetitions = 5; // ripetizioni per statistiche
-    for(int i=0; i<repetitions; i++) {
+    const int repetitions = 10; // ripetizioni per statistiche
+    const int coldStartRepetitions = 2; // ripetizioni ignorate per cold start effects
+    for(int i=0; i<repetitions+coldStartRepetitions; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-
         switch(approach) {
             case SEQUENTIAL:
                 out_img = morphological_operation_seq(in_img, se, operation);
@@ -111,11 +111,14 @@ int main() {
                 out_img = morphological_operation_cuda(in_img, se, operation, mem_type);
                 break;
         }
-
         auto end = std::chrono::high_resolution_clock::now();
         double duration = std::chrono::duration<double, std::milli>(end - start).count();
-        timings.push_back(duration);
-        std::cout << "Run " << i+1 << ": " << duration << " ms\n";
+        if (i<coldStartRepetitions) {
+            std::cout << "Run " << i+1 << ": " << duration << " ms (ignorata per cold start effects)\n";
+        } else {
+            timings.push_back(duration);
+            std::cout << "Run " << i+1 << ": " << duration << " ms\n";
+        }
     }
 
     // Statistiche
