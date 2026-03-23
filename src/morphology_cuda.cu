@@ -52,8 +52,19 @@ __global__ void dilation_global_kernel(const uint8_t* input, uint8_t* output, in
     output[y*width + x] = max_val;
 }
 
+__global__ void subtract_global_kernel(uint8_t* a, uint8_t* b, uint8_t* out, int width, int height)
+{
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if(x >= width || y >= height) return;
+
+    int i = y * width + x;
+    out[i] = max(0, a[i] - b[i]);
+}
+
 // ------------------------
-// Funzione host per kernel
+// Funzione host che chiama i kernel
 // ------------------------
 static void morphological_cuda_global(const Image& img, const StructuringElement& se, Image& output, Operation operation)
 {
@@ -64,7 +75,7 @@ static void morphological_cuda_global(const Image& img, const StructuringElement
     size_t img_bytes = width * height * sizeof(uint8_t);
     size_t se_bytes = se_size * se_size * sizeof(uint8_t);
 
-    uint8_t *d_input, *d_output, *d_se;
+    uint8_t *d_input, *d_temp, *d_output, *d_se;
     cudaMalloc(&d_input, img_bytes);
     cudaMalloc(&d_output, img_bytes);
     cudaMalloc(&d_se, se_bytes);
@@ -75,12 +86,35 @@ static void morphological_cuda_global(const Image& img, const StructuringElement
     dim3 block(BLOCK_SIZE, BLOCK_SIZE);
     dim3 grid((width+BLOCK_SIZE-1)/BLOCK_SIZE, (height+BLOCK_SIZE-1)/BLOCK_SIZE);
 
-    if(operation == EROSION)
-        erosion_global_kernel<<<grid, block>>>(d_input, d_output, width, height, d_se, se_size);
-    else if(operation == DILATION)
-        dilation_global_kernel<<<grid, block>>>(d_input, d_output, width, height, d_se, se_size);
-    else
-        throw std::invalid_argument("CUDA global memory: only erosion/dilation implemented");
+    switch (operation) {
+        case EROSION:
+            erosion_global_kernel<<<grid, block>>>(d_input, d_output, width, height, d_se, se_size);
+            break;
+        case DILATION:
+            dilation_global_kernel<<<grid, block>>>(d_input, d_output, width, height, d_se, se_size);
+            break;
+        case OPENING:
+            cudaMalloc(&d_temp, img_bytes);
+            erosion_global_kernel<<<grid, block>>>(d_input, d_temp, width, height, d_se, se_size);
+            dilation_global_kernel<<<grid, block>>>(d_temp, d_output, width, height, d_se, se_size);
+            cudaFree(d_temp);
+            break;
+        case CLOSING:
+            cudaMalloc(&d_temp, img_bytes);
+            dilation_global_kernel<<<grid, block>>>(d_input, d_temp, width, height, d_se, se_size);
+            erosion_global_kernel<<<grid, block>>>(d_temp, d_output, width, height, d_se, se_size);
+            cudaFree(d_temp);
+            break;
+        case GRADIENT:
+            cudaMalloc(&d_temp, img_bytes);
+            dilation_global_kernel<<<grid, block>>>(d_input, d_output, width, height, d_se, se_size);
+            erosion_global_kernel<<<grid, block>>>(d_input, d_temp, width, height, d_se, se_size);
+            subtract_global_kernel<<<grid, block>>>(d_output, d_temp, d_output, width, height);
+            cudaFree(d_temp);
+            break;
+        default:
+            throw std::invalid_argument("CUDA global memory: invalid operation");
+    }
 
     cudaDeviceSynchronize();
 
