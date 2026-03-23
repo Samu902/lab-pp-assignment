@@ -66,11 +66,12 @@ __global__ void subtract_global_kernel(uint8_t* a, uint8_t* b, uint8_t* out, int
 // ------------------------
 // Funzione host che chiama i kernel
 // ------------------------
-static Image morphological_cuda_global(const Image& img, const StructuringElement& se, Image& output, Operation operation)
+Image morphological_cuda_global(const Image& img, const StructuringElement& se, Operation operation)
 {
     int width = img.getWidth();
     int height = img.getHeight();
     int se_size = se.getSize();
+    Image output(width, height);
 
     size_t img_bytes = width * height * sizeof(uint8_t);
     size_t se_bytes = se_size * se_size * sizeof(uint8_t);
@@ -123,4 +124,6 @@ static Image morphological_cuda_global(const Image& img, const StructuringElemen
     cudaFree(d_input);
     cudaFree(d_output);
     cudaFree(d_se);
+
+    return output;
 }
