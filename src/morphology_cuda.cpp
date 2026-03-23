@@ -15,7 +15,7 @@ Image morphological_operation_cuda(const Image& img, const StructuringElement& s
         case GLOBAL:
             std::cout << "Using GLOBAL memory CUDA\n";
             return morphological_operation_cuda_global(img, se, operation);
-        case TEXTURE:
+        case CONSTANT:
             std::cout << "Using CONSTANT memory CUDA\n";
             return morphological_operation_cuda_constant(img, se, operation);
         case SHARED:
