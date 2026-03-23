@@ -4,9 +4,9 @@
 
 #ifdef USE_CUDA
 // dichiarazione delle implementazioni CUDA
-Image morphological_operation_cuda_global(const Image&, const StructuringElement&, Operation, CudaMemoryType);
-Image morphological_operation_cuda_constant(const Image&, const StructuringElement&, Operation, CudaMemoryType);
-Image morphological_operation_cuda_shared(const Image&, const StructuringElement&, Operation, CudaMemoryType);
+Image morphological_operation_cuda_global(const Image&, const StructuringElement&, Operation);
+Image morphological_operation_cuda_constant(const Image&, const StructuringElement&, Operation);
+Image morphological_operation_cuda_shared(const Image&, const StructuringElement&, Operation);
 #endif
 
 Image morphological_operation_cuda(const Image& img, const StructuringElement& se, Operation operation, CudaMemoryType mem_type) {
