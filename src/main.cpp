@@ -43,12 +43,12 @@ Approach choose_approach() {
 CudaMemoryType choose_memory_type() {
     int choice;
     std::cout << "Select CUDA memory type:\n";
-    std::cout << "1 - Global\n2 - Shared\n3 - Texture\n";
+    std::cout << "1 - Global\n2 - Constant\n3 - Shared\n";
     std::cin >> choice;
     switch(choice) {
         case 1: return GLOBAL;
-        case 2: return SHARED;
-        case 3: return TEXTURE;
+        case 2: return CONSTANT;
+        case 3: return SHARED;
         default:
             std::cerr << "Invalid choice, defaulting to Global.\n";
             return GLOBAL;

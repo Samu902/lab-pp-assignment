@@ -2,7 +2,7 @@
 #include "image_loader.h"
 
 enum Operation { EROSION, DILATION, OPENING, CLOSING, GRADIENT };
-enum CudaMemoryType { GLOBAL, SHARED, TEXTURE };
+enum CudaMemoryType { GLOBAL, CONSTANT, SHARED };
 
 // --- Funzione sequenziale ---
 Image morphological_operation_seq(const Image& img, const StructuringElement& se, Operation operation);
