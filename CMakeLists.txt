@@ -60,3 +60,8 @@ if(CUDAToolkit_FOUND)
 else()
     message(STATUS "CUDA NOT found, building CPU-only version")
 endif()
+
+# Binary executable output directory
+set_target_properties(morphological-image-processing PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ..
+)
