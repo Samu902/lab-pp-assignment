@@ -26,25 +26,32 @@ fi
 
 # Loop di esecuzione di tutti i casi possibili
 
-for file in "$IN_IMG_DIR"/*.pgm; do
-  [ -f "$file" ] || continue
-
 for img_size in "${IMAGE_SIZES[@]}"; do
-  for se_size in "${SE_SIZES[@]}"; do
-    for op in "${OPERATIONS[@]}"; do
-      for app in "${APPROACHES[@]}"; do
-        for mem in "${MEM_TYPES[@]}"; do
+  for file in "$IN_IMG_DIR"/"$img_size"/*.pgm; do
+    echo "$file"
 
+    [ -f "$file" ] || continue
+    filename=$(basename "$file" .pgm)
+
+    for se_size in "${SE_SIZES[@]}"; do
+      for op in "${OPERATIONS[@]}"; do
+        for app in "${APPROACHES[@]}"; do
+          # Se approach non è CUDA, non contare i memory type
+          if [ "$app" -ne 3 ]; then
+            mem_list=(1)
+          else
+            mem_list=("${MEM_TYPES[@]}")
+          fi
+          for mem in "${mem_list[@]}"; do
             "$EXECUTABLE" \
               --img-size="$img_size" \
-              --in-img-path="$file" \
+              --in-img="$filename" \
               --se-size="$se_size" \
               --operation="$op" \
               --approach="$app" \
               --memory-type="$mem" \
               --repetitions="$REPETITIONS" \
               --cold-start-repetitions="$COLD_START_REPETITIONS"
-
           done
         done
       done

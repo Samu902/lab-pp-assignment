@@ -65,7 +65,7 @@ Params choose_params(const int argc, char* argv[]) {
     // 2) input image filename
     std::string in_image_filename;
     std::cout << "Enter input image file name (.pgm file in images/in folder): ";
-    if (!get_cmd_arg(argc, argv, "in-img-path", in_image_filename)) {
+    if (!get_cmd_arg(argc, argv, "in-img", in_image_filename)) {
         std::cin >> in_image_filename;
     } else {
         std::cout << "Got " << in_image_filename << " from arg\n";
