@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
     Params params = choose_params(argc, argv);
 
     // caricamento immagine e creazione structuring element
-    Image in_img = load_image("../images/in/" + std::to_string(params.image_size) + "/" + params.in_image_filename + ".pgm");
+    Image in_img = load_image("./images/in/" + std::to_string(params.image_size) + "/" + params.in_image_filename + ".pgm");
     Image out_img(in_img.getWidth(), in_img.getHeight());
     StructuringElement se = create_square_se(params.structuring_element_size);
 
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Timing stats (ms): min=" << min_time << " max=" << max_time << " avg=" << avg_time << "\n";
 
     // Salva immagine risultato
-    save_image(out_img, "../images/out/" + std::to_string(params.image_size) + "/" + params.in_image_filename + "_" + operation_name(params.operation) + ".pgm");
+    save_image(out_img, "./images/out/" + std::to_string(params.image_size) + "/" + params.in_image_filename + "_" + operation_name(params.operation) + ".pgm");
     std::cout << "Done. Output saved to images/out folder.\n";
 
     return 0;
