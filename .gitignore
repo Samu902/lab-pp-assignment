@@ -35,6 +35,7 @@
 .idea/
 cmake-build-debug/
 .git/
+morphological-image-processing
 
 
 
