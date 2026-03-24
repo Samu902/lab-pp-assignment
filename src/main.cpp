@@ -22,14 +22,12 @@ struct Params {
 // funzione helper per leggere i command line args
 template <typename T>
 bool get_cmd_arg(int argc, char* argv[], const std::string arg_name, T& out_value) {
-    std::string full_arg;
-    std::string prefix;
+    const std::string prefix = "--" + arg_name + "=";
     for (int i = 1; i < argc; i++) {
-        full_arg = argv[i];
-        prefix = "--" + arg_name + "=";
+        std::string full_arg = argv[i];
         if (full_arg.starts_with(prefix)) {
             std::istringstream iss(full_arg.substr(prefix.size()));
-            return (bool)(iss >> out_value);
+            return static_cast<bool>(iss >> out_value);
         }
     }
     return false;
@@ -46,6 +44,8 @@ Params choose_params(const int argc, char* argv[]) {
     std::cout << "3 - 1024x1024\n";
     if (!get_cmd_arg(argc, argv, "img-size", choice)) {
         std::cin >> choice;
+    } else {
+        std::cout << "Got " << choice << " from arg\n";
     }
     switch(choice) {
         case 1:
@@ -65,8 +65,10 @@ Params choose_params(const int argc, char* argv[]) {
     // 2) input image filename
     std::string in_image_filename;
     std::cout << "Enter input image file name (.pgm file in images/in folder): ";
-    if (!get_cmd_arg(argc, argv, "in-img", in_image_filename)) {
+    if (!get_cmd_arg(argc, argv, "in-img-path", in_image_filename)) {
         std::cin >> in_image_filename;
+    } else {
+        std::cout << "Got " << in_image_filename << " from arg\n";
     }
     params.in_image_filename = in_image_filename;
 
@@ -77,6 +79,8 @@ Params choose_params(const int argc, char* argv[]) {
     std::cout << "3 - 7x7\n";
     if (!get_cmd_arg(argc, argv, "se-size", choice)) {
         std::cin >> choice;
+    } else {
+        std::cout << "Got " << choice << " from arg\n";
     }
     switch(choice) {
         case 1:
@@ -98,6 +102,8 @@ Params choose_params(const int argc, char* argv[]) {
     std::cout << "1 - Erosion\n2 - Dilation\n3 - Opening\n4 - Closing\n5 - Gradient\n";
     if (!get_cmd_arg(argc, argv, "operation", choice)) {
         std::cin >> choice;
+    } else {
+        std::cout << "Got " << choice << " from arg\n";
     }
     switch(choice) {
         case 1:
@@ -127,6 +133,8 @@ Params choose_params(const int argc, char* argv[]) {
     std::cout << "3 - GPU (CUDA)\n";
     if (!get_cmd_arg(argc, argv, "approach", choice)) {
         std::cin >> choice;
+    } else {
+        std::cout << "Got " << choice << " from arg\n";
     }
     switch(choice) {
         case 1:
@@ -149,6 +157,8 @@ Params choose_params(const int argc, char* argv[]) {
         std::cout << "1 - Global\n2 - Constant\n3 - Shared\n";
         if (!get_cmd_arg(argc, argv, "memory-type", choice)) {
             std::cin >> choice;
+        } else {
+            std::cout << "Got " << choice << " from arg\n";
         }
         switch(choice) {
             case 1:
@@ -174,6 +184,8 @@ Params choose_params(const int argc, char* argv[]) {
     std::cout << "Enter number of repetitions: ";
     if (!get_cmd_arg(argc, argv, "repetitions", repetitions)) {
         std::cin >> repetitions;
+    } else {
+        std::cout << "Got " << repetitions << " from arg\n";
     }
     params.repetitions = repetitions;
 
@@ -182,6 +194,8 @@ Params choose_params(const int argc, char* argv[]) {
     std::cout << "Enter number of cold start repetitions: ";
     if (!get_cmd_arg(argc, argv, "cold-start-repetitions", cold_start_repetitions)) {
         std::cin >> cold_start_repetitions;
+    } else {
+        std::cout << "Got " << cold_start_repetitions << " from arg\n";
     }
     params.cold_start_repetitions = cold_start_repetitions;
 
