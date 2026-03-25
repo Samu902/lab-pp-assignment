@@ -10,7 +10,10 @@
 // ------------------------
 __global__ void erosion_shared_kernel(const uint8_t* input, uint8_t* output, int width, int height, const uint8_t* se, int se_size)
 {
-    extern __shared__ uint8_t s_se[]; // shared memory dinamica
+    extern __shared__ uint8_t shared_mem[];
+    uint8_t* s_se = shared_mem; // shared memory SE
+    uint8_t* s_img = shared_mem + se_size * se_size; // shared memory tile immagine
+
     int tid = threadIdx.y * blockDim.x + threadIdx.x;
 
     // Copia SE dalla global alla shared memory (solo i primi se_size*se_size thread)
@@ -19,62 +22,118 @@ __global__ void erosion_shared_kernel(const uint8_t* input, uint8_t* output, int
     }
     __syncthreads();
 
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
     int offset = se_size / 2;
+    int tx = threadIdx.x;
+    int ty = threadIdx.y;
+    int bx = blockIdx.x * blockDim.x;
+    int by = blockIdx.y * blockDim.y;
+
+    // Coordinate global del thread
+    int x = bx + tx;
+    int y = by + ty;
+
+    // Dimensione tile shared (includendo halo)
+    int tile_width = BLOCK_SIZE + 2 * offset;
+    int tile_height = BLOCK_SIZE + 2 * offset;
+
+    // Coordinate locali nella shared memory
+    int local_x = tx + offset;
+    int local_y = ty + offset;
+
+    // Copia la tile nell’array shared, con halo
+    for (int dy = ty; dy < tile_height; dy += BLOCK_SIZE) {
+        for (int dx = tx; dx < tile_width; dx += BLOCK_SIZE) {
+            int gx = bx + dx - offset;
+            int gy = by + dy - offset;
+
+            if (gx >= 0 && gx < width && gy >= 0 && gy < height) {
+                s_img[dy * tile_width + dx] = input[gy * width + gx];
+            } else {
+                s_img[dy * tile_width + dx] = 255; // valore neutro per erosion
+            }
+        }
+    }
+    __syncthreads();
 
     if(x >= width || y >= height) return;
 
     uint8_t min_val = 255;
-    for(int j=0; j<se_size; j++){
-        for(int i=0; i<se_size; i++){
-            if(s_se[j*se_size + i] == 0) continue;
-            int xi = x + i - offset;
-            int yj = y + j - offset;
-            if(xi >=0 && xi < width && yj >=0 && yj < height){
-                min_val = min(min_val, input[yj*width + xi]);
-            }
+    for (int j = 0; j < se_size; j++) {
+        for (int i = 0; i < se_size; i++) {
+            if (s_se[j * se_size + i] == 0) continue;
+
+            int sx = local_x + i - offset;
+            int sy = local_y + j - offset;
+
+            min_val = min(min_val, s_img[sy * tile_width + sx]);
         }
     }
-    output[y*width + x] = min_val;
+    output[y * width + x] = min_val;
 }
 
 __global__ void dilation_shared_kernel(const uint8_t* input, uint8_t* output, int width, int height, const uint8_t* se, int se_size)
 {
-    extern __shared__ uint8_t s_se[];
-    int tid = threadIdx.y * blockDim.x + threadIdx.x;
+    extern __shared__ uint8_t shared_mem[];
+    uint8_t* s_se = shared_mem;
+    uint8_t* s_img = shared_mem + se_size * se_size;
 
-    if(tid < se_size * se_size){
+    int tid = threadIdx.y * blockDim.x + threadIdx.x;
+    if (tid < se_size * se_size) {
         s_se[tid] = se[tid];
     }
     __syncthreads();
 
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
     int offset = se_size / 2;
+    int tx = threadIdx.x;
+    int ty = threadIdx.y;
+    int bx = blockIdx.x * blockDim.x;
+    int by = blockIdx.y * blockDim.y;
 
-    if(x >= width || y >= height) return;
+    int x = bx + tx;
+    int y = by + ty;
 
-    uint8_t max_val = 0;
-    for(int j=0; j<se_size; j++){
-        for(int i=0; i<se_size; i++){
-            if(s_se[j*se_size + i] == 0) continue;
-            int xi = x + i - offset;
-            int yj = y + j - offset;
-            if(xi >=0 && xi < width && yj >=0 && yj < height){
-                max_val = max(max_val, input[yj*width + xi]);
+    int tile_width = BLOCK_SIZE + 2 * offset;
+    int tile_height = BLOCK_SIZE + 2 * offset;
+
+    int local_x = tx + offset;
+    int local_y = ty + offset;
+
+    for (int dy = ty; dy < tile_height; dy += BLOCK_SIZE) {
+        for (int dx = tx; dx < tile_width; dx += BLOCK_SIZE) {
+            int gx = bx + dx - offset;
+            int gy = by + dy - offset;
+
+            if (gx >= 0 && gx < width && gy >= 0 && gy < height) {
+                s_img[dy * tile_width + dx] = input[gy * width + gx];
+            } else {
+                s_img[dy * tile_width + dx] = 0; // valore neutro per dilation
             }
         }
     }
-    output[y*width + x] = max_val;
+    __syncthreads();
+
+    if (x >= width || y >= height) return;
+
+    uint8_t max_val = 0;
+    for (int j = 0; j < se_size; j++) {
+        for (int i = 0; i < se_size; i++) {
+            if (s_se[j * se_size + i] == 0) continue;
+
+            int sx = local_x + i - offset;
+            int sy = local_y + j - offset;
+
+            max_val = max(max_val, s_img[sy * tile_width + sx]);
+        }
+    }
+
+    output[y * width + x] = max_val;
 }
 
 __global__ void subtract_shared_kernel(uint8_t* a, uint8_t* b, uint8_t* out, int width, int height)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
-
-    if(x >= width || y >= height) return;
+    if (x >= width || y >= height) return;
 
     int i = y * width + x;
     out[i] = max(0, a[i] - b[i]);
@@ -102,9 +161,10 @@ Image morphological_operation_cuda_shared(const Image& img, const StructuringEle
     cudaMemcpy(d_se, se.getDataR(), se_bytes, cudaMemcpyHostToDevice);
 
     dim3 block(BLOCK_SIZE, BLOCK_SIZE);
-    dim3 grid((width+BLOCK_SIZE-1)/BLOCK_SIZE, (height+BLOCK_SIZE-1)/BLOCK_SIZE);
+    dim3 grid((width + BLOCK_SIZE - 1) / BLOCK_SIZE, (height + BLOCK_SIZE - 1) / BLOCK_SIZE);
 
-    size_t shared_mem_size = se_bytes; // shared memory dinamica per SE
+    // shared memory totale: SE + tile immagine con halo
+    size_t shared_mem_size = se_bytes + (BLOCK_SIZE + 2*(se_size/2))*(BLOCK_SIZE + 2*(se_size/2)) * sizeof(uint8_t);
 
     switch (operation) {
         case EROSION:
