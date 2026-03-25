@@ -1,8 +1,11 @@
 #!/bin/bash
 
+shopt -s nullglob
+
 # Configurazione dei path
 EXECUTABLE="./morphological-image-processing"
 IN_IMG_DIR="./images/in"
+REAL_IMAGE_SIZES=(256 512 1024)
 
 # Opzioni possibili dei parametri
 IMAGE_SIZES=(1 2 3)           # 256x256, 512x512, 1024x1024
@@ -27,9 +30,9 @@ fi
 # Loop di esecuzione di tutti i casi possibili
 
 for img_size in "${IMAGE_SIZES[@]}"; do
-  for file in "$IN_IMG_DIR"/"$img_size"/*.pgm; do
-    echo "$file"
+  real_img_size=${REAL_IMAGE_SIZES[$((img_size-1))]}
 
+  for file in "$IN_IMG_DIR"/"$real_img_size"/*.pgm; do
     [ -f "$file" ] || continue
     filename=$(basename "$file" .pgm)
 
