@@ -41,7 +41,7 @@ for img_size in "${IMAGE_SIZES[@]}"; do
         for app in "${APPROACHES[@]}"; do
           # Se approach non è CUDA, non contare i memory type
           if [ "$app" -ne 3 ]; then
-            mem_list=(1)
+            mem_list=(4)
           else
             mem_list=("${MEM_TYPES[@]}")
           fi

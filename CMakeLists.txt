@@ -28,6 +28,7 @@ endif()
 set(SOURCES
     src/main.cpp
     src/image_loader.cpp
+    src/morphology_utils.cpp
     src/morphology_seq.cpp
     src/morphology_omp.cpp
     src/morphology_cuda.cpp

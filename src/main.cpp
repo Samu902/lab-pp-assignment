@@ -3,10 +3,10 @@
 #include <string>
 #include <chrono>
 #include <vector>
+#include <fstream>
+#include <map>
 #include "../include/image_loader.h"   // gestione immagini
 #include "../include/morphology.h"     // funzioni morfologiche
-
-enum Approach { SEQUENTIAL, OPENMP, CUDA };
 
 struct Params {
     int image_size;
@@ -94,7 +94,7 @@ Params choose_params(const int argc, char* argv[]) {
             break;
         default:
             std::cerr << "Invalid choice, defaulting to 3x3.\n";
-            params.image_size = 3;
+            params.structuring_element_size = 3;
     }
 
     // 4) morphological operation
@@ -176,7 +176,7 @@ Params choose_params(const int argc, char* argv[]) {
                 break;
         }
     } else {
-        params.memory_type = GLOBAL;
+        params.memory_type = NOT_RELEVANT;
     }
 
     // 7) repetitions
@@ -202,17 +202,69 @@ Params choose_params(const int argc, char* argv[]) {
     return params;
 }
 
-std::string operation_name(Operation operation) {
-    switch(operation) {
-    case EROSION: return "erosion";
-    case DILATION: return "dilation";
-    case OPENING: return "opening";
-    case CLOSING: return "closing";
-    case GRADIENT: return "gradient";
-    default:
-        std::cerr << "Invalid choice, defaulting to Erosion.\n";
-        return "erosion";
+std::string make_key(const Params& p) {
+    std::ostringstream oss;
+    oss << p.image_size << ","
+        << p.in_image_filename << ","
+        << p.structuring_element_size << ","
+        << operation_name(p.operation) << ","
+        << approach_name(p.approach) << ","
+        << memory_type_name(p.memory_type) << ","
+        << p.repetitions << ","
+        << p.cold_start_repetitions;
+    return oss.str();
+}
+
+void save_to_csv(const Params& params, double min_time, double max_time, double avg_time) {
+    const std::string filename = "results.csv";
+
+    std::ifstream infile(filename);
+    std::map<std::string, std::string> rows;
+
+    std::string header = "img_size,in_img,se_size,operation,approach,memory_type,repetitions,cold_start_repetitions,min_ms,max_ms,avg_ms";
+
+    // Leggi file esistente
+    if (infile.is_open()) {
+        std::string line;
+        std::getline(infile, line); // salta header
+
+        while (std::getline(infile, line)) {
+            std::istringstream iss(line);
+            std::string key_part;
+
+            // key = primi 8 campi
+            std::getline(iss, key_part, '\n');
+
+            std::string key = key_part.substr(0, key_part.find_last_of(','));
+            rows[key] = line;
+        }
+        infile.close();
     }
+
+    // Crea nuova riga
+    std::ostringstream new_row;
+    new_row << params.image_size << ","
+            << params.in_image_filename << ","
+            << params.structuring_element_size << ","
+            << operation_name(params.operation) << ","
+            << approach_name(params.approach) << ","
+            << memory_type_name(params.memory_type) << ","
+            << params.repetitions << ","
+            << params.cold_start_repetitions << ","
+            << min_time << ","
+            << max_time << ","
+            << avg_time;
+
+    std::string key = make_key(params);
+    rows[key] = new_row.str(); // overwrite automatico
+
+    // Riscrivi file
+    std::ofstream outfile(filename);
+    outfile << header << "\n";
+    for (const auto& [k, v] : rows) {
+        outfile << v << "\n";
+    }
+    outfile.close();
 }
 
 int main(int argc, char* argv[]) {
@@ -260,6 +312,10 @@ int main(int argc, char* argv[]) {
     }
     double avg_time = sum / params.repetitions;
     std::cout << "Timing stats (ms): min=" << min_time << " max=" << max_time << " avg=" << avg_time << "\n";
+
+    // Salva le misurazioni su file .csv
+    save_to_csv(params, min_time, max_time, avg_time);
+    std::cout << "Statistics saved to .csv file.\n";
 
     // Salva immagine risultato
     save_image(out_img, "./images/out/" + std::to_string(params.image_size) + "/" + params.in_image_filename + "_" + operation_name(params.operation) + ".pgm");
