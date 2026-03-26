@@ -9,7 +9,7 @@ The main operations include:
 - **Dilation**
 - **Opening**
 - **Closing**
-- **Morphological Gradient**
+- **Gradient**
 
 These operations are useful for:
 
@@ -44,13 +44,9 @@ The goal is to compare computational performance and analyze the benefits of par
 - **Dilation**: output = maximum of pixels covered by SE
 
 ### Derived Operations
-- **Opening** = Erosion → Dilation
-- **Closing** = Dilation → Erosion
-- **Morphological Gradient** = Dilation − Erosion
-
-### Optional (Bonus)
-- **Top-hat**
-- **Black-hat**
+- **Opening** = Erosion, then Dilation
+- **Closing** = Dilation, then Erosion
+- **Morphological Gradient** = Dilation - Erosion
 
 ---
 
@@ -62,10 +58,13 @@ lab-pp-assignment/
 ├─ src/
 │   ├─ main.cpp                     ← l'entry point dell'applicazione
 │   ├─ image_loader.cpp             ← gestione delle immagini
+│   ├─ morphology_utils.cpp         ← funzioni di utilità morphology
 │   ├─ morphology_seq.cpp           ← implementazione logica sequenziale
 │   ├─ morphology_omp.cpp           ← implementazione logica OpenMP
 │   ├─ morphology_cuda.cpp          ← implementazione logica CUDA (controllo compatibilità)
-│   └─ morphology_cuda.cu           ← implementazione logica CUDA
+│   ├─ morphology_cuda_global.cu    ← implementazione logica CUDA global memory
+│   ├─ morphology_cuda_constant.cu  ← implementazione logica CUDA constant memory
+│   └─ morphology_cuda_shared.cu    ← implementazione logica CUDA shared memory
 │
 ├─ include/
 │   ├─ image_loader.h               ← header gestione immagini
@@ -75,9 +74,9 @@ lab-pp-assignment/
 │   ├─ in/
 │   └─ out/
 │
-├─ results/                         ← salvataggio delle misurazioni sperimentali
+├─ run_all_tests.sh                 ← script per eseguire tutti i casi di test
 │
-├─ CMakeLists.txt                   ← file di build
+├─ CMakeLists.txt                   ← file di configurazione di build
 │
 └─ README.md
 ````
@@ -86,17 +85,8 @@ lab-pp-assignment/
 
 ## Implementation Details
 
-- **Images**: 2D grayscale matrices
-- **Structuring Elements**: 2D binary matrices (e.g., 3x3, 5x5)
-
-Example SE:
-```cpp
-int se[3][3] = {
-  {0, 1, 0},
-  {1, 1, 1},
-  {0, 1, 0}
-};
-````
+- **Images**: 2D grayscale matrices (as a linear std::vector)
+- **Structuring Elements**: 2D binary matrices (e.g. 3x3, 5x5, 7x7 - as a linear std::vector)
 
 ### Erosion
 
@@ -111,6 +101,10 @@ for each pixel:
 for each pixel:
     output = maximum of neighbors defined by SE
 ```
+
+### Other operations
+
+Other operations are composite of these first two.
 
 ---
 
@@ -130,7 +124,7 @@ for (int i = 0; i < height; i++) {
 ### CUDA (GPU)
 
 * Map 1 thread per pixel
-* Use shared memory for optimization
+* Optimize usage of memory: from global to constant and shared memory
 
 ---
 
@@ -138,13 +132,18 @@ for (int i = 0; i < height; i++) {
 
 Test on:
 
-* Images of different sizes: 512×512, 1024×1024, 4K
-* Structuring element sizes: 3×3, 7×7, 15×15
+* Images of different sizes (256x256, 512×512, 1024×1024)
+* Structuring element sizes (3×3, 5x5, 7×7)
+* Different morphological operations
+* Different computational versions and memory types (when applicable, e.g. with CUDA)
+* Multiple iterations on same parameters
+* Skip initial iterations to prevent cold start effects
 
 Measure:
 
-* Execution time
-* Speedup: `Speedup = T_sequential / T_parallel`
+* Min execution time
+* Max execution time
+* Avg execution time
 
 ---
 
@@ -158,7 +157,7 @@ Measure:
 
 ## Technologies Used
 
-* **C++ (C++17 or newer)**
+* **C++ (C++ 20 or newer)**
 * **OpenMP** for CPU parallelization
 * **CUDA** for GPU acceleration
 
@@ -166,7 +165,7 @@ Measure:
 
 ## Requirements
 
-* C++17-compatible compiler
+* C++ 20 compatible compiler
 * OpenMP support
 * NVIDIA CUDA Toolkit
 * CUDA-capable GPU for GPU execution
