@@ -318,7 +318,16 @@ int main(int argc, char* argv[]) {
     std::cout << "Statistics saved to .csv file.\n";
 
     // Salva immagine risultato
-    save_image(out_img, "./images/out/" + std::to_string(params.image_size) + "/" + params.in_image_filename + "_" + operation_name(params.operation) + ".pgm");
+    std::stringstream output_path_stream;
+    output_path_stream << "./images/out/"
+        << params.image_size << "/"
+        << params.in_image_filename
+        << "_se-" << params.structuring_element_size << "x" << params.structuring_element_size
+        << "_" << operation_name(params.operation)
+        << "_" << approach_name(params.approach)
+        << (params.approach == CUDA ? ("_" + memory_type_name(params.memory_type)) : "")
+        << ".pgm";
+    save_image(out_img, output_path_stream.str());
     std::cout << "Done. Output saved to images/out folder.\n";
 
     return 0;
